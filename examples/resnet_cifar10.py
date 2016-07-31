@@ -95,7 +95,7 @@ def building_residual_block(input_shape, n_feature_maps, kernel_sizes=None, n_sk
             shortcut_y = x
     # ***** CONVOLUTION_PATH *****
     conv_y = x
-    for i in range(n_skip):
+    for i in range(n_skip - 1):
         conv_y = BatchNormalization(axis=1)(conv_y)
         conv_y = Activation('relu')(conv_y)
         if i==0 and is_subsample: # [Subsample at layer 0 if needed]
@@ -121,12 +121,12 @@ def residual_model(n):
     model.add(Convolution2D(16, 3, 3, subsample = (1, 1), border_mode='same', input_shape=(3, 32, 32)))
 
     # 1st 2n layer, 16 filters, output shape: (16, 32, 32)
-    for i in range(2 * n):
+    for i in range(n):
         model.add(building_residual_block(input_shape = (16, 32, 32), n_feature_maps = 16,
                   kernel_sizes = (3, 3), n_skip = 2, is_subsample = False, subsample = None))
 
     # 2nd 2n layer, 32 filters, output shape: (32, 16, 16)
-    for i in range(2 * n):
+    for i in range(n):
         # expand dimensions and half the outpu shape size
         if i == 0:
             model.add(building_residual_block(input_shape = (16, 32, 32), n_feature_maps = 32,
@@ -136,7 +136,7 @@ def residual_model(n):
                       kernel_sizes = (3, 3), n_skip = 2, is_subsample = False, subsample = None))
 
     # 3rd 2n layer, 64 filters, output shape: (64, 8, 8)
-    for i in range(2 * n):
+    for i in range(n):
         # expand dimensions and half the outpu shape size
         if i == 0:
             model.add(building_residual_block(input_shape = (32, 16, 16), n_feature_maps = 64,
